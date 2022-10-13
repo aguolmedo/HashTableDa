@@ -7,7 +7,7 @@ public class TPUHashtable<K,V> implements Map<K,V>, Cloneable, Serializable
     // tamaño maximo del arreglo es y la tabla hash
     private final static int MAX_SIZE = Integer.MAX_VALUE;
     private Entry<K, V> table[];
-    //para representar pares de objetos-> Entry k(clave)- v(valor)(clase interna)
+    //para representar pares de objetos --> Entry k(clave)- v(valor)(clase interna)
     private class Entry<K, V> implements Map.Entry<K, V> {
         private K key;
         private V value;
@@ -79,17 +79,17 @@ public class TPUHashtable<K,V> implements Map<K,V>, Cloneable, Serializable
     }
 
 
-    //*Mas atributos
     // tamaño con el que se creo la tabla y cantidad de objetos que contiene
     private int capacidad_inicial;
     private int count;
     /**
-     * Estados
-     * 0: Abierta
-     * 1: Cerrada
-     * 2: Tumba
-     * **/
+     Estados
+      0: Abierta
+      1: Cerrada
+      2: Tumba
+      **/
     private int states[];
+
     // lo usamos para verificar si hace falta rehashing -> "factor de carga"
     private float load_factor;
     //y aqui para las vistas junto con el fail fast iterator.
@@ -99,16 +99,15 @@ public class TPUHashtable<K,V> implements Map<K,V>, Cloneable, Serializable
     protected transient int modCount;
 
 
-    //se procede a crear la tabla vacia con capacidad inicial 5 y el facto r de carga 0.8f
     public TPUHashtable()
     {
-        this(5, 0.8f);
+        this(5, 0.5f);
     }
 
 
     public TPUHashtable(int capacidad_inicial, float load_factor)
     {
-        if(load_factor <= 0) { load_factor = 0.8f; }
+        if(load_factor <= 0) { load_factor = 0.5f; }
         if(capacidad_inicial <= 0) { capacidad_inicial = 11; }
         else
         {
@@ -130,7 +129,6 @@ public class TPUHashtable<K,V> implements Map<K,V>, Cloneable, Serializable
         }
     }
 
-    // Map methods
 
     @Override
     public int size() {
@@ -161,19 +159,16 @@ public class TPUHashtable<K,V> implements Map<K,V>, Cloneable, Serializable
         int j = 1;
         V valueReturn = null;
 
-        // buscamos el elemento
         while (this.states[index] != 0) {
 
             if (this.states[index] == 1) {
                 Entry<K, V> entry = this.table[index];
 
-                // Si es el mismo devuelvo el value
                 if(key.equals(entry.getKey())){
                     valueReturn = entry.getValue();
                     return valueReturn;
                 }
             }
-            // nuevo indice
             index += j * j;
             j++;
             if (index >= this.table.length) {
@@ -213,7 +208,6 @@ public class TPUHashtable<K,V> implements Map<K,V>, Cloneable, Serializable
             //puntero a tumba
             if(this.states[index] == 2 && primera_tumba < 0) primera_tumba = index;
 
-            //nuevo indice
             index += j^2;
             j++;
             if (index >= this.table.length) {
@@ -227,7 +221,6 @@ public class TPUHashtable<K,V> implements Map<K,V>, Cloneable, Serializable
         this.table[index] = new Entry<K, V>(key, value);
         this.states[index] = 1;
 
-        // se actualiza contador
         this.count++;
         this.modCount++;
 
@@ -268,7 +261,6 @@ public class TPUHashtable<K,V> implements Map<K,V>, Cloneable, Serializable
                 }
             }
 
-            // indice
             index += j^2;
             j++;
             if (index >= this.table.length) {
@@ -301,7 +293,6 @@ public class TPUHashtable<K,V> implements Map<K,V>, Cloneable, Serializable
     @Override
     public Set<K> keySet() {
         if (keySet == null) {
-            // keySet = Collections.synchronizedSet(new KeySet());
             keySet = new KeySet();
         }
         return keySet;
@@ -493,7 +484,6 @@ public class TPUHashtable<K,V> implements Map<K,V>, Cloneable, Serializable
 
             @Override
             public K next() {
-                // iterador
                 if (TPUHashtable.this.modCount != expected_modCount) {
                     throw new ConcurrentModificationException("next(): modificación inesperada de tabla...");
                 }
@@ -521,7 +511,6 @@ public class TPUHashtable<K,V> implements Map<K,V>, Cloneable, Serializable
 
             @Override
             public void remove() {
-                // iterator fail-fast
                 if (TPUHashtable.this.modCount != expected_modCount) {
                     throw new ConcurrentModificationException("evento inesperado...");
                 }
@@ -832,8 +821,6 @@ public class TPUHashtable<K,V> implements Map<K,V>, Cloneable, Serializable
     }
 
 
-    // las siguientes funciones hash por cada objeto enviado retorna el indice de esa clave para entrar a la tabla
-    // y.
     private int h(int k) {
         return h(k, this.table.length);
     }
@@ -841,19 +828,15 @@ public class TPUHashtable<K,V> implements Map<K,V>, Cloneable, Serializable
     private int h(K key) {
         return h(key.hashCode(), this.table.length);
     }
-    //toma la clave y el tamaño t, y luego con el hascode retorna el indice para esa clave y tamaño
     private int h(K key, int t) {
         return h(key.hashCode(), t);
     }
-    //en este caso es igual pero calcula y retorna el indice para esa clave
     private int h(int k, int t) {
         if (k < 0)
             k *= -1;
         return k % t;
     }
 
-    //como vimos en lso desafios anteriores tomamos el siguiente primo:
-    //junto con su funcion esPrimo
     public int siguientePrimo(int x) {
         while (!esPrimo(x)) {
             x ++;
